@@ -39,6 +39,7 @@ juce_add_plugin(Gnomon
 
 target_sources(Gnomon
     PRIVATE
+        Source/PluginEditor.cpp
         Source/PluginProcessor.cpp)
 
 target_include_directories(Gnomon PRIVATE Source)

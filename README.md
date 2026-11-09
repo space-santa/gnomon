@@ -80,6 +80,20 @@ To keep a pattern you like as an ordinary MIDI clip:
 2. Record a few bars.
 3. Set track 2's **MIDI From** back to **No Input** (or turn Gnomon off). Otherwise the clip and Gnomon play at the same time and every note doubles.
 
+## The window
+
+The left side shows the pattern. Each lane is a coloured ring, with the kick on the outside and the open hat on the inside.
+
+- **Dots** are steps, starting at 12 o'clock and running clockwise. Large dots are hits, and small dots are rests. You can see at a glance how evenly each lane's hits are spread.
+- **White hands** show where each lane is in its cycle while Live plays. When a hand reaches a hit, the dot flashes. When lanes have the same number of steps, their hands line up into a single dial. When step counts differ, the hands drift apart, and you can watch the lanes move against each other.
+- **The centre** shows the current step rate.
+
+The right side has the controls: the rate at the top, then one row of knobs per lane, in the same colours as the rings.
+
+- **Drag** a knob up or down to change it.
+- **Double-click** a knob to reset it to its default.
+- **Click the number** under a knob to type a value. Note knobs accept note names (`C1`, `F#1`, `Bb2`) as well as MIDI numbers.
+
 ## Controls
 
 | Control | Range | What it does |
@@ -145,6 +159,7 @@ Every push to GitHub builds a Windows VST3 (see `.github/workflows/build.yml`).
 | --- | --- |
 | `CMakeLists.txt` | Build setup: plugin formats, IDs, JUCE version |
 | `Source/PluginProcessor.cpp` | Sequencer: parameters, transport sync, note timing |
+| `Source/PluginEditor.cpp` | The window: ring display, knobs, colours |
 | `Source/Euclid.h` | The Euclidean pattern function |
 | `.github/workflows/build.yml` | macOS (universal) and Windows builds on GitHub |
 
