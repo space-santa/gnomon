@@ -42,6 +42,21 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    static juce::String getLaneName (int lane);
+
+    /** Where the host's transport was at the last audio block, for the UI to animate. */
+    struct TransportSnapshot
+    {
+        double stepPosition = 0.0;   // in steps (at the current rate) since the start of the song
+        double stepsPerSecond = 0.0; // for extrapolating between audio blocks
+        double timeMs = 0.0;         // juce::Time::getMillisecondCounterHiRes() when captured
+        bool playing = false;
+        bool valid = false;          // false until the host has reported a position
+    };
+
+    /** Safe to call from the message thread. */
+    TransportSnapshot getTransportSnapshot() const;
+
     juce::AudioProcessorValueTreeState params;
 
 private:
@@ -61,6 +76,11 @@ private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     static void releaseLane (Lane& lane, juce::MidiBuffer& midi, int sampleOffset);
     void releaseAllLanes (juce::MidiBuffer& midi, int sampleOffset);
+    void publishTransport (const juce::Optional<double>& ppq, const juce::Optional<double>& bpm, double stepPpq, bool playing);
+
+    // The audio thread only ever try-locks this, so the UI can never block audio.
+    mutable juce::SpinLock transportLock;
+    TransportSnapshot transport;
 
     std::array<Lane, numLanes> lanes;
     std::atomic<float>* rate = nullptr;

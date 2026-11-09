@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
 #include "Euclid.h"
 
 #include <cmath>
@@ -26,7 +27,37 @@ constexpr LaneDefaults laneDefaults[GnomonProcessor::numLanes] {
     { "Closed hat", 16, 8, 1, 42 }, // every other sixteenth, off the beat
     { "Open hat",   16, 4, 2, 46 }, // offbeat eighths
 };
+
+// Note names use Live's convention, where middle C (60) is C3.
+juce::String noteToText (int note)
+{
+    return juce::MidiMessage::getMidiNoteName (note, true, true, 3);
+}
+
+// Accepts a plain number ("36") or a note name ("C1", "F#1", "Bb-1").
+int textToNote (const juce::String& text)
+{
+    const auto t = text.trim().toUpperCase();
+
+    if (t.isEmpty() || t[0] < 'A' || t[0] > 'G')
+        return juce::jlimit (0, 127, t.getIntValue());
+
+    constexpr int semitoneOfLetter[] { 9, 11, 0, 2, 4, 5, 7 }; // A B C D E F G
+    int semitone = semitoneOfLetter[t[0] - 'A'];
+    int i = 1;
+
+    if (t[i] == '#')      { ++semitone; ++i; }
+    else if (t[i] == 'B') { --semitone; ++i; } // a flat ("Bb" is upper-cased to "BB")
+
+    const int octave = t.substring (i).getIntValue();
+    return juce::jlimit (0, 127, (octave + 2) * 12 + semitone);
+}
 } // namespace
+
+juce::String GnomonProcessor::getLaneName (int lane)
+{
+    return laneDefaults[juce::jlimit (0, numLanes - 1, lane)].name;
+}
 
 GnomonProcessor::GnomonProcessor()
     : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
@@ -53,8 +84,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout GnomonProcessor::createParam
     layout.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "rate", 1 }, "Rate",
                                                               juce::StringArray { "1/4", "1/8", "1/16", "1/32" }, 2));
 
-    const auto noteName = juce::AudioParameterIntAttributes{}.withStringFromValueFunction (
-        [] (int value, int) { return juce::MidiMessage::getMidiNoteName (value, true, true, 3); });
+    const auto noteName = juce::AudioParameterIntAttributes{}
+                              .withStringFromValueFunction ([] (int value, int) { return noteToText (value); })
+                              .withValueFromStringFunction ([] (const juce::String& text) { return textToNote (text); });
 
     for (int i = 0; i < numLanes; ++i)
     {
@@ -120,6 +152,11 @@ void GnomonProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Midi
     const auto bpm = position ? position->getBpm() : juce::Optional<double>{};
     const bool playing = position && position->getIsPlaying() && ppq && bpm && *bpm > 0.0;
 
+    const auto rateIndex = juce::jlimit (0, (int) std::size (rateInQuarterNotes) - 1, juce::roundToInt (rate->load()));
+    const double stepPpq = rateInQuarterNotes[rateIndex];
+
+    publishTransport (ppq, bpm, stepPpq, playing);
+
     if (! playing)
     {
         if (wasPlaying)
@@ -132,8 +169,6 @@ void GnomonProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Midi
 
     wasPlaying = true;
 
-    const auto rateIndex = juce::jlimit (0, (int) std::size (rateInQuarterNotes) - 1, juce::roundToInt (rate->load()));
-    const double stepPpq = rateInQuarterNotes[rateIndex];
     const double ppqPerSample = *bpm / (60.0 * currentSampleRate);
     const double startPpq = *ppq;
     const double endPpq = startPpq + numSamples * ppqPerSample;
@@ -197,10 +232,30 @@ void GnomonProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Midi
     }
 }
 
+void GnomonProcessor::publishTransport (const juce::Optional<double>& ppq, const juce::Optional<double>& bpm,
+                                        double stepPpq, bool playing)
+{
+    const juce::SpinLock::ScopedTryLockType lock (transportLock);
+
+    if (! lock.isLocked())
+        return; // the UI is reading; skip this update rather than wait
+
+    transport.valid = ppq.hasValue();
+    transport.stepPosition = ppq ? *ppq / stepPpq : transport.stepPosition;
+    transport.stepsPerSecond = bpm && *bpm > 0.0 ? *bpm / (60.0 * stepPpq) : 0.0;
+    transport.playing = playing;
+    transport.timeMs = juce::Time::getMillisecondCounterHiRes();
+}
+
+GnomonProcessor::TransportSnapshot GnomonProcessor::getTransportSnapshot() const
+{
+    const juce::SpinLock::ScopedLockType lock (transportLock);
+    return transport;
+}
+
 juce::AudioProcessorEditor* GnomonProcessor::createEditor()
 {
-    // A plain list of sliders for now; swap in a custom editor later.
-    return new juce::GenericAudioProcessorEditor (*this);
+    return new GnomonEditor (*this);
 }
 
 void GnomonProcessor::getStateInformation (juce::MemoryBlock& destData)
