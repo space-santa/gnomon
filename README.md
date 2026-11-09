@@ -166,3 +166,18 @@ A **gnomon** (Greek for "one who knows" or "indicator", pronounced NO-mon) has t
 **Euclid also supplies the rhythms.** The patterns Gnomon plays are called Euclidean rhythms because they come from Euclid's algorithm. It's his method for finding the greatest common divisor of two numbers, from Book VII of the same book. In 2005, the computer scientist Godfried Toussaint showed that running this algorithm on the number of hits and the number of steps spreads the hits as evenly as possible. Those even spreads turn out to be rhythms that musical traditions around the world arrived at independently. For example, 3 hits over 8 steps (`x..x..x.`) is the Cuban *tresillo*, a figure heard throughout Latin American and West African music.
 
 So the name ties together a word from the book that gave us the algorithm and an ancient tool for keeping time.
+
+## License
+
+Gnomon is free software: you can redistribute it and/or modify it under the terms of the [GNU Affero General Public License](LICENSE), version 3 or (at your option) any later version.
+
+In short, you can use, study, change and share Gnomon. If you share a version (modified or not), you must make its full source code available under the same license.
+
+Gnomon includes third-party code under these licenses:
+
+| Component | License |
+| --- | --- |
+| [JUCE](https://juce.com) | [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html) (JUCE is also available under a commercial license, which Gnomon doesn't use) |
+| [VST3 SDK](https://github.com/steinbergmedia/vst3sdk) (bundled with JUCE) | [MIT](https://opensource.org/license/mit) |
+
+VST is a registered trademark of Steinberg Media Technologies GmbH.

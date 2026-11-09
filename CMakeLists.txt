@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 cmake_minimum_required(VERSION 3.22)
 
 # Must be set before project(). Xcode 27 no longer supports targets below macOS 12.
