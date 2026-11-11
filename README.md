@@ -24,12 +24,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 ```
 
-The plugin is installed automatically after every build:
-
-| Format | Installed to |
-| --- | --- |
-| VST3 | `~/Library/Audio/Plug-Ins/VST3/Gnomon.vst3` |
-| AU | `~/Library/Audio/Plug-Ins/Components/Gnomon.component` |
+The plugin is installed automatically after every build, to `~/Library/Audio/Plug-Ins/VST3/Gnomon.vst3`.
 
 To build without installing, add `-DGNOMON_COPY_PLUGIN=OFF` to the first command.
 
@@ -50,8 +45,6 @@ Track 1 "Gnomon"                     Track 2 "Drums"
                                      │  Drum Rack               │
                                      └──────────────────────────┘
 ```
-
-**Use the VST3 version in Live.** Live can't receive MIDI from AU plugins, so the AU version won't drive another track.
 
 ### One-time setup
 
@@ -131,7 +124,6 @@ Lanes with step counts that don't divide evenly into a bar (5, 7, 13 and so on) 
 - Check that **Use VST3 Plug-In System Folders** is on. Then rescan; hold `⌥` while clicking **Rescan** to force a full rescan.
 
 **"Gnomon" isn't in track 2's bottom MIDI From dropdown**
-- Check that track 1 has the **VST3** version loaded, not the AU.
 - Check that the top dropdown is set to track 1.
 
 **Nothing plays**

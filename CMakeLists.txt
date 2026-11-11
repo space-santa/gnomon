@@ -34,7 +34,7 @@ juce_add_plugin(Gnomon
     NEEDS_MIDI_OUTPUT TRUE
     IS_MIDI_EFFECT    FALSE
 
-    FORMATS VST3 AU
+    FORMATS VST3
     COPY_PLUGIN_AFTER_BUILD ${GNOMON_COPY_PLUGIN})
 
 target_sources(Gnomon

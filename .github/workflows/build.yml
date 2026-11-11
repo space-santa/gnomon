@@ -32,6 +32,4 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: Gnomon-${{ runner.os }}
-          path: |
-            build/Gnomon_artefacts/Release/VST3
-            build/Gnomon_artefacts/Release/AU
+          path: build/Gnomon_artefacts/Release/VST3
